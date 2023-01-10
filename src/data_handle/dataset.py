@@ -14,7 +14,10 @@ from util import utils_np
 
 '''
 '''
-class io(): # in case skimage not found
+class io(): 
+    '''
+    This class is used in case skimage not feasible. It does the same as "skimage.io".
+    '''
     @staticmethod
     def imread(path):
         tr = torchvision.transforms.PILToTensor()
@@ -22,12 +25,19 @@ class io(): # in case skimage not found
 
 class ImageStackDataset(Dataset):
     def __init__(self, csv_path:str, root_dir:str, transform:torchvision.transforms=None, 
-                 pred_offset_range:tuple=None, ref_image_name=None, image_ext='png'):
+                 pred_offset_range:tuple=None, ref_image_name:str=None, image_ext='png'):
         '''
-        Args:
-            csv_path: Path to the CSV file with dataset info.
-            root_dir: Directory with all image folders.
-                      root_dir - video_folder - imgs
+        Description
+            :This is a Pytorch-style Dataset generating a stack of images as the input.
+        Argument
+            :csv_path - Path to the CSV file with the info of the whole dataset.
+            :root_dir - Directory with all image folders (root_dir - video_folder - imgs/csvs).
+            :transform <torchvision.transform> - Transform (such as rotation and flipping) the images.
+            :pred_offset_range <tuple> - The prediction offset range, should be (offset_min, offset_max).
+            :ref_image_name <str> - If the reference image has a name, specify here; otherwise regard the folder name as its name.
+            :image_ext <str> - The format of the raw images, such as "png" and "jpg".
+        Comment
+            :The method "__getitem__" returns a dictionary with ['input', 'target', 'index', 'traj', 'time']
         '''
         super().__init__()
         self.info_frame = pd.read_csv(csv_path)
@@ -59,13 +69,14 @@ class ImageStackDataset(Dataset):
             img_name = f'{info["index"]}.{self.ext}'
         img_path = os.path.join(self.root_dir, str(info['index']), img_name)
         image = self.togray(io.imread(img_path))
+
         for i in range(self.input_len):
             position = info['p{}'.format(i)]
             this_x = float(position.split('_')[0])
             this_y = float(position.split('_')[1])
             traj.append([this_x,this_y])
 
-            obj_map = utils_np.np_gaudist_map((this_x, this_y), np.zeros_like(image), sigmas=[20,20])
+            obj_map = utils_np.np_gaudist_map((this_x, this_y), np.zeros_like(image), sigmas=[20,20]) # TODO: change the input map here
             input_img = np.concatenate((input_img, obj_map[:,:,np.newaxis]), axis=2)
         input_img = np.concatenate((input_img, image[:,:,np.newaxis]), axis=2)
         
@@ -85,6 +96,7 @@ class ImageStackDataset(Dataset):
 
         return sample
 
+    @DeprecationWarning # TODO: Chech this function
     def rescale_label(self, label, original_scale): # x,y & HxW
         current_scale = self.check_img_shape()
         rescale = (current_scale[0]/original_scale[0] , current_scale[1]/original_scale[1])
@@ -103,9 +115,7 @@ class ImageStackDataset(Dataset):
     def check_img_shape(self, img_name=None):
         info = self.info_frame.iloc[0]
         video_folder = str(info['index'])
-        if img_name is not None:
-            img_name = img_name
-        else:
+        if img_name is None:
             img_name = video_folder + '.' + self.ext
         img_path = os.path.join(self.root_dir, video_folder, img_name)
         image = self.togray(io.imread(img_path))

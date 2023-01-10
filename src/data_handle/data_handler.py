@@ -4,11 +4,11 @@ import torch
 import torchvision
 from torch.utils.data import DataLoader
 
-'''
-'''
+from torch.utils.data import Dataset
+
 
 class DataHandler():
-    def __init__(self, dataset, batch_size=64, shuffle=True, num_workers=0):
+    def __init__(self, dataset:Dataset, batch_size=64, shuffle=True, num_workers=0):
         self.dataset = dataset
         self.dataloader = DataLoader(self.dataset, batch_size, shuffle, num_workers=num_workers) # create the dataloader from the dataset
         self.__iter = iter(self.dataloader)
@@ -34,8 +34,8 @@ class DataHandler():
 class Rescale(object):
     def __init__(self, output_size:tuple, tolabel=False):
         '''
-        Args:
-            output_size - (height * width)
+        Argument
+            :output_size - (height * width)
         '''
         super().__init__()
         self.output_size = output_size
