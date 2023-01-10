@@ -10,7 +10,7 @@ import torch
 import torchvision
 from torch.utils.data import Dataset
 
-from util import utils_np
+import utils_np
 
 '''
 '''
