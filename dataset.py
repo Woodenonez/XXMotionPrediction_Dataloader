@@ -44,13 +44,24 @@ class ImageStackDataset(Dataset):
         self.root_dir = root_dir
         self.tr = transform
 
+        if image_ext not in ['png', 'jpg', 'jpeg']:
+            raise ValueError(f'Unrecognized image type {image_ext}.')
         self.T_range = pred_offset_range
         self.ext = image_ext  # should not have '.'
         self.background = ref_image_name # if not None, use this as the background image
 
         csv_str = 'p' # in csv files, 'p' means position
         self.input_len = len([x for x in list(self.info_frame) if csv_str in x]) # length of input time step
-        self.img_shape = self.check_img_shape(self.background)
+        self.img_shape = self.__check_img_shape(self.background)
+
+    def __check_img_shape(self, img_name=None):
+        info = self.info_frame.iloc[0]
+        video_folder = str(info['index'])
+        if img_name is None:
+            img_name = video_folder + '.' + self.ext
+        img_path = os.path.join(self.root_dir, video_folder, img_name)
+        image = self.togray(io.imread(img_path))
+        return image.shape
 
     def __len__(self):
         return len(self.info_frame)
@@ -67,6 +78,7 @@ class ImageStackDataset(Dataset):
             img_name = self.background
         else:
             img_name = f'{info["index"]}.{self.ext}'
+            
         img_path = os.path.join(self.root_dir, str(info['index']), img_name)
         image = self.togray(io.imread(img_path))
 
@@ -98,7 +110,7 @@ class ImageStackDataset(Dataset):
 
     @DeprecationWarning # TODO: Chech this function
     def rescale_label(self, label, original_scale): # x,y & HxW
-        current_scale = self.check_img_shape()
+        current_scale = self.__check_img_shape()
         rescale = (current_scale[0]/original_scale[0] , current_scale[1]/original_scale[1])
         return (label[0]*rescale[1], label[1]*rescale[0])
 
@@ -112,12 +124,4 @@ class ImageStackDataset(Dataset):
             img = image[:,:,0]/3 + image[:,:,1]/3 + image[:,:,2]/3
             return img
 
-    def check_img_shape(self, img_name=None):
-        info = self.info_frame.iloc[0]
-        video_folder = str(info['index'])
-        if img_name is None:
-            img_name = video_folder + '.' + self.ext
-        img_path = os.path.join(self.root_dir, video_folder, img_name)
-        image = self.togray(io.imread(img_path))
-        return image.shape
 
