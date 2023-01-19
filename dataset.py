@@ -119,7 +119,8 @@ class ImageStackDataset(Dataset):
         rescale = (current_scale[0]/original_scale[0] , current_scale[1]/original_scale[1])
         return (label[0]*rescale[1], label[1]*rescale[0])
 
-    def togray(self, image, normalize=True):
+    @staticmethod
+    def togray(image, normalize=True):
         if (len(image.shape)==2):
             return image
         elif (len(image.shape)==3) and (image.shape[2]==1):
