@@ -79,7 +79,7 @@ class DelAlpha(object):
         if (len(image.shape)==2) or (image.shape[2] == 1):
             return sample
         else:
-            return {'image':image[:,:,:3], 'label':label}
+            return {'input':image[:,:,:3], 'target':label}
 
 class ToTensor(object):
     """Convert ndarrays in sample to Tensors."""

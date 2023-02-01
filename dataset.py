@@ -11,7 +11,7 @@ import torch
 import torchvision
 from torch.utils.data import Dataset
 
-from _data_handle_mmp import utils_np
+from . import utils_np
 
 '''
 '''
