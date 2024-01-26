@@ -25,15 +25,15 @@ class io():
         return tr(Image.open(path)).permute(1,2,0)
 
 class ImageStackDataset(Dataset):
-    '''This is a Pytorch-style Dataset generating a stack of images as the input.
+    """This is a Pytorch-style Dataset generating a stack of images as the input.
 
     Notes:
         The method "__getitem__" returns a dictionary with ['input', 'target', 'index', 'traj', 'time'] where 
         'input'-np.ndarray/tensor, 'target'-np.ndarray/tensor, 'traj'-np.ndarray.
-    '''
-    def __init__(self, csv_path:str, root_dir:str, transform:torchvision.transforms=None, 
+    """
+    def __init__(self, csv_path: str, root_dir: str, transform:torchvision.transforms=None, 
                  pred_offset_range:Optional[tuple]=None, ref_image_name:Optional[str]=None, image_ext='png'):
-        '''
+        """
         Args:
             csv_path: Path to the CSV file with the info of the whole dataset.
             root_dir: Directory with all image folders (root_dir - video_folder - imgs/csvs).
@@ -41,7 +41,7 @@ class ImageStackDataset(Dataset):
             pred_offset_range: The prediction offset range, should be (offset_min, offset_max).
             ref_image_name: If the reference image has a name, specify here; otherwise regard the folder name as its name.
             image_ext: The format of the raw images, such as "png" and "jpg".
-        '''
+        """
         super().__init__()
         self.info_frame = pd.read_csv(csv_path)
         self.root_dir = root_dir
