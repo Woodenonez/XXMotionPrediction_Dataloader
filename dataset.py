@@ -1,47 +1,46 @@
 import os
 import sys
 import glob
+from typing import Optional, Union
 
 import numpy as np
-import pandas as pd
+import pandas as pd # type: ignore
 # from skimage import io
-from PIL import Image
+from PIL import Image # type: ignore
 
 import torch
-import torchvision
+import torchvision # type: ignore
 from torch.utils.data import Dataset
 
 from _data_handle_mmp import utils_np
 
-'''
-'''
+
 class io(): 
     '''
     This class is used in case skimage not feasible. It does the same as "skimage.io".
     '''
     @staticmethod
-    def imread(path):
+    def imread(path) -> torch.Tensor:
         tr = torchvision.transforms.PILToTensor()
         return tr(Image.open(path)).permute(1,2,0)
 
 class ImageStackDataset(Dataset):
-    '''
-    Description
-        :This is a Pytorch-style Dataset generating a stack of images as the input.
-    Comment
-        :The method "__getitem__" returns a dictionary with ['input', 'target', 'index', 'traj', 'time']
-        :'input'-np.ndarray/tensor, 'target'-np.ndarray/tensor, 'traj'-np.ndarray.
+    '''This is a Pytorch-style Dataset generating a stack of images as the input.
+
+    Notes:
+        The method "__getitem__" returns a dictionary with ['input', 'target', 'index', 'traj', 'time'] where 
+        'input'-np.ndarray/tensor, 'target'-np.ndarray/tensor, 'traj'-np.ndarray.
     '''
     def __init__(self, csv_path:str, root_dir:str, transform:torchvision.transforms=None, 
-                 pred_offset_range:tuple=None, ref_image_name:str=None, image_ext='png'):
+                 pred_offset_range:Optional[tuple]=None, ref_image_name:Optional[str]=None, image_ext='png'):
         '''
-        Argument
-            :csv_path - Path to the CSV file with the info of the whole dataset.
-            :root_dir - Directory with all image folders (root_dir - video_folder - imgs/csvs).
-            :transform <torchvision.transform> - Transform (such as rotation and flipping) the images.
-            :pred_offset_range <tuple> - The prediction offset range, should be (offset_min, offset_max).
-            :ref_image_name <str> - If the reference image has a name, specify here; otherwise regard the folder name as its name.
-            :image_ext <str> - The format of the raw images, such as "png" and "jpg".
+        Args:
+            csv_path: Path to the CSV file with the info of the whole dataset.
+            root_dir: Directory with all image folders (root_dir - video_folder - imgs/csvs).
+            transform: Transform (such as rotation and flipping) the images.
+            pred_offset_range: The prediction offset range, should be (offset_min, offset_max).
+            ref_image_name: If the reference image has a name, specify here; otherwise regard the folder name as its name.
+            image_ext: The format of the raw images, such as "png" and "jpg".
         '''
         super().__init__()
         self.info_frame = pd.read_csv(csv_path)
@@ -113,14 +112,14 @@ class ImageStackDataset(Dataset):
 
         return sample
 
-    @DeprecationWarning # TODO: Chech this function
+    @DeprecationWarning # TODO: Check this function
     def rescale_label(self, label, original_scale): # x,y & HxW
         current_scale = self.__check_img_shape()
         rescale = (current_scale[0]/original_scale[0] , current_scale[1]/original_scale[1])
         return (label[0]*rescale[1], label[1]*rescale[0])
 
     @staticmethod
-    def togray(image, normalize=True):
+    def togray(image: Union[np.ndarray, torch.Tensor], normalize=True):
         if (len(image.shape)==2):
             return image
         elif (len(image.shape)==3) and (image.shape[2]==1):

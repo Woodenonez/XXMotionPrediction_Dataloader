@@ -4,9 +4,20 @@ def np_sigmoid(x):
     return 1/(1 + np.exp(-x))
 
 def np_create_circle(r, ring=False):
-    # Generate a n-by-n matrix, n=2r+1
-    # This matrix contains a circle filled with 1, otherwise 0
-    # If 'ring' is true, only the edge of the circle is 1.
+    '''Generate a circle in a matrix.
+
+    Args:
+        r: Radius of the circle.
+        ring: If true, only the edge of the circle is 1. Default is False.
+
+    Returns:
+        A np.ndarray matrix with a circle in it.
+
+    Notes:
+        The matrix is a square matrix with size 2r+1.
+        The circle is filled with 1, otherwise 0.
+        If 'ring' is true, only the edge of the circle is 1.
+    '''
     A = np.arange(-r,r+1)**2
     dists = np.sqrt(A[:,None] + A)
     if ring:
@@ -15,8 +26,19 @@ def np_create_circle(r, ring=False):
         return (dists<r).astype(int)
 
 def np_create_circle_mask(circle_centre, r, base_matrix):
-    # Create a circle mask on an empty matrix with the given shape
-    # If the maskis out of borders, it will be cut.
+    '''Create a circle mask on an empty matrix with the given shape.
+
+    Args:
+        circle_centre: Tje centre (pixel) position of the circle.
+        r: Radius of the circle.
+        base_matrix: The matrix used as a reference of the size for the new matrix.
+
+    Returns:
+        A np.ndarray matrix with a circle in it.
+
+    Notes:
+        If the mask is out of borders, it will be cut.
+    '''
     base_matrix = np.zeros(base_matrix.shape)
     np_circle = np_create_circle(r)
     row_min = np.maximum(circle_centre[1]-r, 0)
@@ -37,21 +59,19 @@ def np_create_circle_mask(circle_centre, r, base_matrix):
     return base_matrix
 
 def np_add_circle_mask(circle_centre, r, base_matrix):
-    # Add a circle mask to the given base
+    '''Add a circle mask to the given base (mask+base_matrix).'''
     mask = np_create_circle_mask(circle_centre, r, base_matrix)
     base_matrix += mask
     return base_matrix
 
-def np_matrix_subtract(base_matrix, ref_matrix):
-    # Subtract the intersection area of the base with the reference 
+def np_matrix_subtract(base_matrix: np.ndarray, ref_matrix: np.ndarray):
+    ''' Subtract the intersection area of the base with the reference.''' 
     intersection = base_matrix.astype(int) & ref_matrix.astype(int)
     base_matrix -= intersection
     return base_matrix
 
-def np_dist_map(centre, base_matrix):
-    # Create a distance map given the centre and map size
-    # The distance is defined as the Euclidean distance
-    # The map is normalized
+def np_dist_map(centre, base_matrix: np.ndarray):
+    '''Create a normalized Euclidean distance map given the centre and map size.'''
     base_matrix = np.zeros(base_matrix.shape)
     x = np.arange(0, base_matrix.shape[1])
     y = np.arange(0, base_matrix.shape[0])
@@ -66,10 +86,8 @@ def np_gaussian(xy:tuple, mu:tuple, sigma:tuple, rho): #XXX TEST FUNCTION
     z = 1/(2*np.pi*sigma[0]*sigma[1]*np.sqrt(1-rho**2)) * np.exp(in_exp)
     return z
 
-def np_gaudist_map(centre, base_matrix, sigmas=[100,100], rho=0, flip=False):
-    # Create a distance map given the centre and map size
-    # The distance is defined by the Gaussian distribution
-    # The map is normalized
+def np_gaudist_map(centre, base_matrix: np.ndarray, sigmas=[100,100], rho=0.0, flip=False):
+    '''Create a normalized Gaussian distance map given the centre and map size.'''
     sigma_x, sigma_y = sigmas[0], sigmas[1]
     x = np.arange(0, base_matrix.shape[1])
     y = np.arange(0, base_matrix.shape[0])
@@ -93,8 +111,8 @@ def np_multigau_map(gaumap_list, weights=[]):
     return out/out.max()
 
 if __name__ == '__main__':
-    import matplotlib.pyplot as plt
-    from mpl_toolkits.mplot3d import Axes3D
+    import matplotlib.pyplot as plt # type: ignore
+    from mpl_toolkits.mplot3d import Axes3D # type: ignore
 
     centre1 = (30,40)
     centre2 = (60,60)
@@ -119,7 +137,7 @@ if __name__ == '__main__':
     # ax = fig.gca(projection='3d')
     # ax.plot_surface(X, Y, map, cmap='hot')
 
-    plt.imshow(map1)
+    plt.imshow(map)
     [plt.plot(c[0],c[1],'rx') for c in centres]
 
     plt.show()
